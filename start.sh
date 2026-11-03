@@ -22,7 +22,11 @@ case "${1:-}" in
   --status) exec bash "$DIR/scripts/status.sh" ;;
   --logs)   exec tail -n 50 -f "$LOGS/wgp.log" ;;
   --pack)   exec bash "$DIR/scripts/pack_outputs.sh" ;;
-  --update) [ -d "$WAN/.git" ] && [ -z "${WANGP_REF:-}" ] && git -C "$WAN" pull -q --ff-only ;;
+  --update)
+    # pull this repo first, then re-exec so the new start.sh runs
+    [ -d "$DIR/.git" ] && git -C "$DIR" pull -q --ff-only || true
+    exec bash "$DIR/start.sh" --update-wangp ;;
+  --update-wangp) [ -d "$WAN/.git" ] && [ -z "${WANGP_REF:-}" ] && git -C "$WAN" pull -q --ff-only || true ;;
   "") ;;
   *) sed -n '2,8p' "$0"; exit 1 ;;
 esac
